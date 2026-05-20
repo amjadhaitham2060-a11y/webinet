@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebiNet - متجر الأجهزة الإلكترونية</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f2f4f8; direction: rtl; padding: 15px; }
+        .header { background: #1e3a5f; color: white; padding: 20px; border-radius: 25px; text-align: center; margin-bottom: 15px; }
+        .nav { display: flex; justify-content: space-around; background: #fbbf24; padding: 12px; border-radius: 40px; margin-bottom: 20px; }
+        .nav button { background: none; border: none; font-size: 16px; font-weight: bold; padding: 6px 12px; border-radius: 30px; cursor: pointer; }
+        .nav button:hover { background: #e5a00d; }
+        .product { background: white; border-radius: 20px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .product-icon { font-size: 48px; min-width: 70px; text-align: center; background: #eef2ff; border-radius: 20px; padding: 10px; }
+        .product-info { flex: 1; }
+        .product-name { font-size: 20px; font-weight: bold; }
+        .price { color: #1e3a5f; font-weight: bold; font-size: 20px; }
+        .add-btn { background: #fbbf24; border: none; padding: 8px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .cart-section, .payment-section { background: white; border-radius: 25px; padding: 20px; margin-top: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding: 10px 0; }
+        button { cursor: pointer; }
+        .checkout-btn { background: #1e3a5f; color: white; padding: 10px 20px; border: none; border-radius: 40px; margin-top: 15px; font-size: 16px; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 20px; border: 1px solid #ccc; }
+        footer { text-align: center; margin-top: 30px; color: #6c757d; }
+        @media (max-width: 550px) { .product { flex-wrap: wrap; } .product-icon { width: 100%; } }
+        .hero { background: white; border-radius: 25px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>🔌 WebiNet</h2>
+    <p>أفضل الأجهزة الإلكترونية - نوصل لكل الأردن</p>
+</div>
+
+<div class="nav">
+    <button onclick="showPage('home')">🏠 الرئيسية</button>
+    <button onclick="showPage('products')">📦 المنتجات</button>
+    <button onclick="showPage('cart')">🛒 السلة (<span id="cartCount">0</span>)</button>
+</div>
+
+<div id="content"></div>
+
+<footer>
+    © 2026 WebiNet - خدمة التوصيل لجميع المحافظات
+</footer>
+
+<script>
+    const products = [
+        { id: 1, name: "هواتف خلوية", price: 250, icon: "📱", desc: "أحدث الهواتف الذكية" },
+        { id: 2, name: "أجهزة كهربائية", price: 300, icon: "🧊", desc: "ثلاجات، غسالات، مكيفات" },
+        { id: 3, name: "أجهزة تعليمية", price: 150, icon: "📚", desc: "تابلت تعليمي، سبورات ذكية" },
+        { id: 4, name: "حواسيب محمولة", price: 450, icon: "💻", desc: "لابتوبات حديثة" },
+        { id: 5, name: "أجهزة لوحية (iPad & Tablet)", price: 200, icon: "📟", desc: "iPad، تابلت متنوع" },
+        { id: 6, name: "إكسسوارات إلكترونية", price: 50, icon: "🎧", desc: "شواحن، سماعات، حافظات" }
+    ];
+
+    let cart = [];
+
+    function updateCartCount() {
+        let total = 0;
+        for(let i=0; i<cart.length; i++) total += cart[i].quantity;
+        document.getElementById('cartCount').innerText = total;
+    }
+
+    window.addToCart = function(productId) {
+        let product = products.find(p => p.id === productId);
+        let existing = cart.find(item => item.id === productId);
+        if(existing) existing.quantity++;
+        else cart.push({ ...product, quantity: 1 });
+        updateCartCount();
+        alert(`✅ تم إضافة ${product.name} إلى السلة`);
+        if(document.getElementById('content').innerHTML.includes('سلة التسوق')) showPage('cart');
+    };
+
+    window.changeQty = function(id, delta) {
+        let item = cart.find(i => i.id === id);
+        if(item) {
+            item.quantity += delta;
+            if(item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+            updateCartCount();
+            showPage('cart');
+        }
+    };
+
+    window.showPage = function(page) {
+        if(page === 'home') renderHome();
+        else if(page === 'products') renderProducts();
+        else if(page === 'cart') renderCart();
+        else if(page === 'payment') renderPayment();
+    };
+
+    function renderHome() {
+        let html = `
+            <div class="hero">
+                <h2>🌟 مرحباً بكم في WebiNet 🌟</h2>
+                <p>شركة متخصصة في بيع الأجهزة الإلكترونية - نوصل لكل محافظات الأردن.</p>
+                <p><strong>رؤيتنا:</strong> التوسع خارج العاصمة وبناء علامة تجارية رقمية قوية.</p>
+                <p><strong>خدماتنا:</strong> توصيل سريع، دفع آمن، دعم فني 24/7.</p>
+                <button class="add-btn" onclick="showPage('products')">🛍️ تسوق الآن</button>
+            </div>
+        `;
+        document.getElementById('content').innerHTML = html;
+    }
+
+    function renderProducts() {
+        let html = '';
+        for(let prod of products) {
+            html += `
+                <div class="product">
+                    <div class="product-icon">${prod.icon}</div>
+                    <div class="product-info">
+                        <div class="product-name">${prod.name}</div>
+                        <div class="product-category">${prod.desc}</div>
+                        <div class="price">${prod.price} دينار</div>
+                    </div>
+                    <button class="add-btn" onclick="addToCart(${prod.id})">➕ أضف للسلة</button>
+                </div>
+            `;
+        }
+        document.getElementById('content').innerHTML = html;
+    }
+
+    function renderCart() {
+        if(cart.length === 0) {
+            document.getElementById('content').innerHTML = `<div class="cart-section">🛒 السلة فارغة. <button onclick="showPage('products')">تسوق الآن</button></div>`;
+            return;
+        }
+        let total = 0;
+        let itemsHtml = '';
+        for(let item of cart) {
+            let itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            itemsHtml += `
+                <div class="cart-item">
+                    <div><span style="font-size:28px;">${item.icon}</span> ${item.name}</div>
+                    <div>${item.price} دينار × ${item.quantity} = ${itemTotal} دينار</div>
+                    <div>
+                        <button onclick="changeQty(${item.id}, -1)">-</button>
+                        <button onclick="changeQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }
+        let html = `
+            <div class="cart-section">
+                <h2>🛒 سلة التسوق</h2>
+                ${itemsHtml}
+                <hr>
+                <div style="font-size:20px; font-weight:bold;">المجموع الكلي: ${total} دينار</div>
+                <button class="checkout-btn" onclick="showPage('payment')">💳 إتمام الدفع</button>
+            </div>
+        `;
+        document.getElementById('content').innerHTML = html;
+    }
+
+    function renderPayment() {
+        let total = 0;
+        for(let item of cart) total += item.price * item.quantity;
+        let html = `
+            <div class="payment-section">
+                <h2>💳 إتمام عملية الدفع</h2>
+                <p>المبلغ الإجمالي: <strong>${total} دينار</strong></p>
+                <div>
+                    <label>الاسم الكامل:</label>
+                    <input type="text" id="fullName" placeholder="أدخل اسمك">
+                </div>
+                <div>
+                    <label>طريقة الدفع:</label>
+                    <select id="paymentMethod">
+                        <option>بطاقة ائتمان</option>
+                        <option>محفظة إلكترونية</option>
+                        <option>الدفع عند الاستلام</option>
+                    </select>
+                </div>
+                <div>
+                    <label>عنوان التوصيل:</label>
+                    <input type="text" id="address" placeholder="المدينة، الشارع">
+                </div>
+                <button class="checkout-btn" onclick="completeOrder()">✅ تأكيد الطلب</button>
+            </div>
+        `;
+        document.getElementById('content').innerHTML = html;
+    }
+
+    window.completeOrder = function() {
+        let name = document.getElementById('fullName')?.value;
+        let address = document.getElementById('address')?.value;
+        if(!name || !address) {
+            alert("يرجى إدخال الاسم وعنوان التوصيل");
+            return;
+        }
+        alert(`شكراً ${name}، تم استلام طلبك وسيتم توصيله إلى ${address} خلال 2-3 أيام.`);
+        cart = [];
+        updateCartCount();
+        showPage('home');
+    };
+
+    showPage('home');
+    updateCartCount();
+</script>
+</body>
+</html>
